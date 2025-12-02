@@ -1,0 +1,39 @@
+{
+  inputs = {
+    nixpkgs.url = "nixpkgs/nixos-unstable";
+    flake-utils.url = "github:numtide/flake-utils";
+  };
+
+  outputs = {
+    nixpkgs,
+    flake-utils,
+    ...
+  }:
+    flake-utils.lib.eachDefaultSystem ( system:
+    let
+    pkgs = (import nixpkgs { inherit system; });
+
+    nativeBuildInputs = with pkgs; [ pkg-config ];
+    buildInputs = with pkgs; [ rustup vscode-langservers-extracted mold clang llvmPackages.bintools ];
+    devInputs = with pkgs; [ nixd ];
+
+    in {
+      devShells.default = pkgs.mkShell {
+        nativeBuildInputs = nativeBuildInputs ++ devInputs;
+        buildInputs = buildInputs ++ devInputs;
+
+        # https://github.com/rust-lang/rust-bindgen#environment-variables
+        LIBCLANG_PATH = pkgs.lib.makeLibraryPath [ pkgs.llvmPackages_latest.libclang.lib ];
+        LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath ( buildInputs ++ nativeBuildInputs );
+
+        shellHook = ''
+          # Avoid polluting the home directory
+          export RUSTUP_HOME=$(pwd)/.rustup/
+          export CARGO_HOME=$(pwd)/.cargo/
+
+          # Use binaries installed with `cargo install`
+          export PATH=$PATH:$CARGO_HOME/bin
+        '';
+      };
+  });
+}
