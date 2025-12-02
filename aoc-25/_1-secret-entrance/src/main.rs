@@ -13,29 +13,18 @@ fn main() {
         // we count full turns since they always `click` at 0
         let full_turns = count / MAX_DIAL;
         password += full_turns;
-
         count %= MAX_DIAL;
-        match line.chars().next().unwrap() {
-            'L' => {
-                dial -= count;
-            }
-            'R' => {
-                dial += count;
-            }
-            _ => panic!("Wrong input.txt"),
-        };
+
+        let sign = if let 'L' = line.chars().next().unwrap() { -1 } else { 1 };
+        dial += sign * count;
 
         // we check if `dial < 0 || MAX_DIAL <= dial` because that means that
         // the dial `clicked` at 0 only if it is not 0
-        if !(0..=MAX_DIAL).contains(&dial) && !is_dial_at_zero {
-            password += 1;
-        }
+        password += (!(0..=MAX_DIAL).contains(&dial) && !is_dial_at_zero) as i32;
 
         dial = dial.rem_euclid(MAX_DIAL);
         is_dial_at_zero = dial == 0;
-        if dial == DIAL_SECRET_POS {
-            password += 1;
-        }
+        password += (dial == DIAL_SECRET_POS) as i32;
     }
     println!("{password}")
 }
