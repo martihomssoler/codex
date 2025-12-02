@@ -27,10 +27,6 @@
         LD_LIBRARY_PATH = pkgs.lib.makeLibraryPath ( buildInputs ++ nativeBuildInputs );
 
         shellHook = ''
-          # Avoid polluting the home directory
-          export RUSTUP_HOME=$(pwd)/.rustup/
-          export CARGO_HOME=$(pwd)/.cargo/
-
           # Use binaries installed with `cargo install`
           export PATH=$PATH:$CARGO_HOME/bin
         '';
